@@ -52,6 +52,7 @@ def solve(pos, window_time, alpha=alpha, beta=beta, time_scale=time_scale, windo
     remaining_time = time_scale + window_duration
     rem_pos = pos.copy()
     rem_win = window_time.copy()
+    rem_ids = np.arange(pos.shape[0])
     now_pos = start_coord
     path = []
     total_elapsed = 0.
@@ -79,11 +80,12 @@ def solve(pos, window_time, alpha=alpha, beta=beta, time_scale=time_scale, windo
         total_elapsed = total_elapsed + elapsed
         if total_elapsed >= time_scale + window_duration:
             break
-        path.append((rem_pos[best], elapsed, total_elapsed))
+        path.append((rem_pos[best], elapsed, total_elapsed, rem_ids[best]))
 
         now_pos = rem_pos[best]
         rem_pos = np.delete(rem_pos, best, axis=0)
         rem_win = np.delete(rem_win, best, axis=0)
+        rem_ids = np.delete(rem_ids, best, axis=0)
 
     end_time = time()
 
@@ -94,6 +96,20 @@ def solve(pos, window_time, alpha=alpha, beta=beta, time_scale=time_scale, windo
         print(f"users served: {len(path)}")
 
     return path, exec_time
+
+def verify_path(pos, window_time, path, speed=speed, start_coord=start_coord, time_scale=time_scale, window_duration=window_duration, verbose=False):
+    if path[-1][2] > time_scale + window_duration:
+        if verbose:
+            print("Exeeded time limit")
+        return False
+
+    for p in path:
+        if p[2] < window_time[p[3]] or p[2] > window_time[p[3]] + window_duration:
+            if verbose:
+                print("Visited user outside of the time window")
+            return False
+
+    return True
 
 if __name__ == '__main__':
     show_plots = True
@@ -106,6 +122,8 @@ if __name__ == '__main__':
         gantt_plot(window_time)
 
     path, exec_time = solve(pos, window_time, verbose=True)
+
+    print(f"Path ok: {verify_path(pos, window_time, path, verbose=True)}")
 
     # print(path)
 
