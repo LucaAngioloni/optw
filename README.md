@@ -1,4 +1,4 @@
-# OTPW
+# OPTW
 
 Orienteering Problem with Time Windows
 
